@@ -20,6 +20,6 @@ public:
 private:
     point3 orig;
     vec3 dir;
-}
+};
 
 #endif
