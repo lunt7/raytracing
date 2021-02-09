@@ -7,24 +7,31 @@
 // (A + tB - C)(A + tB - C) = r^2
 // (t^2)(B^2) + 2tB(A - C) + (A - C)^2 = r^2
 // a = B^2, b = 2B(A - C), c = (A - C)^2
-bool hit_sphere(const point3& center, double radius, const ray& r) {
+double hit_sphere(const point3& center, double radius, const ray& r) {
     vec3 A = r.origin();
     vec3 B = r.direction();
     double a = dot(B, B);
     double b = 2.0 * dot(B, A - center);
     double c = dot(A - center, A - center) - radius*radius;
     double discriminant = b*b - 4*a*c;
-    return discriminant > 0;
+    // the ray may hit the sphere only one time, or twice (entry and exit), return the entry point
+    return (discriminant >= 0) ? (-b - sqrt(discriminant)) / (2.0*a) : -1.0;
 }
 
 color ray_color(const ray& r) {
-    if (hit_sphere(point3(0, 0, -1), 0.5, r)) {
-        return color(1, 0, 0);
+    double t = (hit_sphere(point3(0, 0, -1), 0.5, r));
+    // ray hits the sphere
+    if (t > 0.0) {
+        // normal vector on sphere surface
+        vec3 N = unit_vector(r.at(t) - vec3(0, 0, -1));
+        return 0.5 * color(N.x() + 1, N.y() + 1, N.z() + 1);
     }
+    
+    // ray hits background
     vec3 unit_direction = unit_vector(r.direction());
     // -1.0 < unit_direction.y() < 1.0
     // 0.0 <= t <= 1.0
-    double t = 0.5 * (unit_direction.y() + 1.0);
+    t = 0.5 * (unit_direction.y() + 1.0);
     // at t = 0.0, color = white
     // at t = 1.0, color = blue
     return (1 - t) * color(1.0, 1.0, 1.0) + t * color(0.0, 0.0, 1.0);
