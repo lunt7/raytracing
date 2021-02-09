@@ -2,7 +2,25 @@
 #include "ray.h"
 #include "color.h"
 
+// P = (x, y, z) = A + tB
+// (P - C)^2 = (x - Cx)^2 + (y - Cy)^2 + (z - Cz)^2 = r^2
+// (A + tB - C)(A + tB - C) = r^2
+// (t^2)(B^2) + 2tB(A - C) + (A - C)^2 = r^2
+// a = B^2, b = 2B(A - C), c = (A - C)^2
+bool hit_sphere(const point3& center, double radius, const ray& r) {
+    vec3 A = r.origin();
+    vec3 B = r.direction();
+    double a = dot(B, B);
+    double b = 2.0 * dot(B, A - center);
+    double c = dot(A - center, A - center) - radius*radius;
+    double discriminant = b*b - 4*a*c;
+    return discriminant > 0;
+}
+
 color ray_color(const ray& r) {
+    if (hit_sphere(point3(0, 0, -1), 0.5, r)) {
+        return color(1, 0, 0);
+    }
     vec3 unit_direction = unit_vector(r.direction());
     // -1.0 < unit_direction.y() < 1.0
     // 0.0 <= t <= 1.0
